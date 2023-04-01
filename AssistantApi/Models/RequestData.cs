@@ -1,22 +1,21 @@
-﻿using Newtonsoft.Json;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace AssistantApi.Models
 {
     public class RequestData
     {
-        public string Handler { get; set; }
+        public string HandlerCommand { get; set; }
+        public string Params { get; set; } = null;
 
-        public string Time { get; set; }
-
-        public RequestData(JsonElement request)
+        public RequestData(JsonElement Request)
         {
-            Time = request.GetProperty("user").GetProperty("lastSeenTime").GetString()!;
-            Handler = request.GetProperty("handler").GetProperty("name").GetString()!;
+            HandlerCommand = Request.GetProperty("handler").GetProperty("name").ToString();
+            Params = Request.GetProperty("intent").GetProperty("params").ToString();
         }
+
         public override string ToString()
         {
-            return $"Command: {Handler}\nId: {Time}";
+            return $"Command: {HandlerCommand}\nParams: {Params}";
         }
     }
 }

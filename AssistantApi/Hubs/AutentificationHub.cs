@@ -7,26 +7,19 @@ namespace AssistantApi.Hubs
 {
     public class AutentificationHub : Hub
     {
+        DBMongo dBMongo = new DBMongo();
 
-        public void SendCommands(string message)
+        public void CreateUser(string id)
         {
-            Console.WriteLine($"{Context.ConnectionId}");
-            Clients.All.SendAsync("Send", message);
-        }
-
-        public void CreateUser(string Time)
-        {
-            var Mongo = new DBMongo();
-            ForDB forDB = new ForDB(Time, Context.ConnectionId);
-            Mongo.Add(forDB);
+            if (!dBMongo.UpdateDataIfConnected(id, Context.ConnectionId))
+            {
+                Console.WriteLine("Хуйня короче при підключенні"); //TODO: Відправляти юзеру щось, щоб він охуїв і червоним підсвітилось
+            }
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var Mongo = new DBMongo();
-            await Mongo.DeleteForDesktopId(Context.ConnectionId);
+            dBMongo.UpdateDataIfDisconnected(Context.ConnectionId);
         }
-
-
     }
 }

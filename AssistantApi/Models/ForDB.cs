@@ -1,17 +1,18 @@
-﻿namespace AssistantApi.Models
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
+
+namespace AssistantApi.Models
 {
     public class ForDB
     {
-        public int _id{ get; set; } 
-        public string ?desktopId{ get; set; }
-        public string ?lastSeenTime{ get; set; }
+        [BsonId]
+        public string id{ get;} //this is user mail
+        public string desktopId{ get; set; } = "";
+        public bool isConnected { get; set; } = false;
 
-        public ForDB(string? lastSeenTime, string? desktopId)
+        public ForDB(string id)
         {
-            Random rand = new Random(1000);
-            _id = rand.Next(100);
-            this.lastSeenTime = lastSeenTime;
-            this.desktopId = desktopId;
+            this.id = id;
         }
     }
 }

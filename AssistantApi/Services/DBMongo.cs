@@ -1,4 +1,5 @@
 ﻿using AssistantApi.Models;
+using Microsoft.VisualBasic;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -13,61 +14,68 @@ namespace AssistantApi.services
             var client = new MongoClient("mongodb://root:example@132.226.192.36:27017");
             var database = client.GetDatabase("users");
             _collection = database.GetCollection<ForDB>("user");
-
-
         }
-        // Метод для додавання об'єкту в базу даних
+
+        /// <summary>
+        /// Метод для додавання в базу даних
+        /// </summary>
+        /// <param name="forDb"></param>
         public void Add(ForDB forDb)
         {
             _collection.InsertOne(forDb);
         }
-        public bool CheckForParametrDesktopId(string forDb)
+
+        /// <summary>
+        /// Перевірка чі підключений клієнта до серверу, та повернення ідентифікатора користувача для клієнта
+        /// </summary>
+        /// <param name="LastSeenTime"></param>
+        /// <param name="desktopId"></param>
+        /// <returns></returns>
+        public bool ClientIsConnected(string Email, out string desktopId)
         {
-            var filter = Builders<ForDB>.Filter.Eq("DesktopId", forDb);
-            var result = _collection.Find(filter).Any();
-            return result ? true : false;
-        }
-
-
-        public string GetDesktopIdByLastSeenTime (string lastSeenTime, string Time)
-        {
-            // Створення фільтра для пошуку документів за другим параметром
-            var filter = Builders<ForDB>.Filter.Eq("lastSeenTime", lastSeenTime);
-
-            // Отримання документа з колекції за фільтром
-            var document = _collection.Find(filter).FirstOrDefault();
-
-            // Перевірка наявності документа та отримання значення параметра
-            if (document != null)
+            try
             {
-
-                _collection.ReplaceOne(filter, new ForDB(Time, document.desktopId));
-                return document.desktopId;
+                var user = _collection.Find(new BsonDocument("_id", Email)).First();
+                desktopId = user.desktopId;
+                return user.isConnected;
             }
-            else
+            catch (Exception)
             {
-                return null; // Повернення null, якщо документ не знайдено
+                desktopId = null;
+                return false;
             }
-
-            
         }
 
-        public bool replace (ForDB forDb )
+        /// <summary>
+        /// При підключенні клієнта в базі данних міняються хуйні короче
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="desktopId"></param>
+        public bool UpdateDataIfConnected(string id, string desktopId)
         {
-
-
-            return true;
+            try
+            {
+                var filter = new BsonDocument("_id", id);
+                var updateSettings = new BsonDocument("$set", new BsonDocument { { "isConnected", true }, { "desktopId", desktopId } });
+                _collection.UpdateOneAsync(filter, updateSettings);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
-        
-        public async Task DeleteForDesktopId(string forDB)
+
+        /// <summary>
+        /// При відключенні клієнта в базі данних міняються хуйні короче
+        /// </summary>
+        /// <param name="id"></param>
+        public void UpdateDataIfDisconnected(string desktopId)
         {
-            var filter = Builders<ForDB>.Filter.Eq("desktopId", forDB);
-            _collection.DeleteMany(filter);
+            var filter = new BsonDocument("desktopId", desktopId);
+            var updateSettings = new BsonDocument("$set", new BsonDocument { { "isConnected", false }, { "desktopId", "" } });
+            _collection.UpdateOneAsync(filter, updateSettings);
         }
-
-
 
     }
-
-
 }
