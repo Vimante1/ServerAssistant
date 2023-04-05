@@ -16,9 +16,6 @@ namespace AssistantApi.Controllers
     [Route("/assistant/endpoint")]
     public class AssistantController : ControllerBase
     {
-
-        private string ResponseForAssistant = "{\r\n\t\"prompt\": {\r\n\t\t\"override\": false,\r\n\t\t\"firstSimple\": {\r\n\t\t\t\"speech\": \"" + /*Time*/ ".\",\r\n\t\t\t\"text\": \"\"\r\n\t\t}\r\n\t}\r\n}";
-
         private DBMongo dBMongo = new DBMongo();
         IHubContext<AutentificationHub> hubContext;
 
@@ -30,28 +27,26 @@ namespace AssistantApi.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromHeader(Name = "Authorization")] string Token, [FromBody] JsonElement Request)
         {
-
             RequestData data = new RequestData(Request);
             var Email = new JwtObject(Token).Email;
 
-            if (data.HandlerCommand == "CreateUser")
+            if (data.HandlerCommand == "CreateUser" && !dBMongo.UserIsCreated(Email))
             {
-
                 ForDB forDB = new ForDB(Email);
                 dBMongo.Add(forDB);
             }
+            else if(dBMongo.UserIsCreated(Email)) return Ok();
             else
             {
                 if (dBMongo.ClientIsConnected(Email, out string desktopId))
                 {
                     try
                     {
-                        hubContext.Clients.Client(desktopId).SendAsync("Send", data.HandlerCommand);
+                        await hubContext.Clients.Client(desktopId).SendAsync("Send", data.HandlerCommand);
                     }
                     catch (Exception ex)
                     {
-
-                        Console.WriteLine("Помилка авторизації чі якась хуйня\n" + ex); 
+                        Console.WriteLine("Error:\n" + ex); 
                     }
                 }
             }
@@ -79,38 +74,3 @@ namespace AssistantApi.Controllers
 
     }
 }
-
-
-
-
-
-//Console.WriteLine(Request);
-//DateTimeOffset now = DateTimeOffset.UtcNow;
-//string Time = now.ToString("yyyy-MM-ddTHH:mm:ssZ");
-//RequestData Data = new RequestData(Request);
-//Console.WriteLine(Data);
-//Console.WriteLine(Time);
-
-//DBMongo dBMongo = new DBMongo();
-
-//if (Data.Handler == "Autentification")
-//{
-//    return Ok(ResponseForAssistant);
-//}
-//else
-//{
-//    var DesktopId = dBMongo.GetDesktopIdByLastSeenTime(Data.Time, Time);
-//    if (DesktopId != null)
-//    {
-//        try
-//        {
-//            hubContext.Clients.Client(DesktopId).SendAsync("Replace", Time);
-//            hubContext.Clients.Client(DesktopId).SendAsync("Send", Data.Handler);
-//        }
-//        catch (Exception ex)
-//        {
-//            Console.WriteLine("Помилка авторизації чі якась хуйня\n" + ex);
-//        }
-//    }
-//}
-//return Ok();

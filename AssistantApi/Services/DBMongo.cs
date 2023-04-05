@@ -25,6 +25,14 @@ namespace AssistantApi.services
             _collection.InsertOne(forDb);
         }
 
+        public bool UserIsCreated(string Email)
+        {
+            var filter = Builders<ForDB>.Filter.Eq("_id", Email);
+            var user = _collection.Find(filter).FirstOrDefault();
+            return user != null;
+        }
+
+
         /// <summary>
         /// Перевірка чі підключений клієнта до серверу, та повернення ідентифікатора користувача для клієнта
         /// </summary>
