@@ -25,6 +25,11 @@ namespace AssistantApi.services
             _collection.InsertOne(forDb);
         }
 
+        /// <summary>
+        /// Метод для перевірки чи створений запис реєстрації клієнта в базі данних
+        /// </summary>
+        /// <param name="Email"></param>
+        /// <returns></returns>
         public bool UserIsCreated(string Email)
         {
             var filter = Builders<ForDB>.Filter.Eq("_id", Email);

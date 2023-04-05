@@ -32,10 +32,13 @@ namespace AssistantApi.Controllers
 
             if (data.HandlerCommand == "CreateUser" && !dBMongo.UserIsCreated(Email))
             {
+                if (dBMongo.UserIsCreated(Email))
+                {
+                    return Ok();
+                }
                 ForDB forDB = new ForDB(Email);
                 dBMongo.Add(forDB);
             }
-            else if(dBMongo.UserIsCreated(Email)) return Ok();
             else
             {
                 if (dBMongo.ClientIsConnected(Email, out string desktopId))

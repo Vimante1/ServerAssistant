@@ -11,10 +11,7 @@ namespace AssistantApi.Hubs
 
         public void CreateUser(string id)
         {
-            if (!dBMongo.UpdateDataIfConnected(id, Context.ConnectionId))
-            {
-                Console.WriteLine("Хуйня короче при підключенні"); //TODO: Відправляти юзеру щось, щоб він охуїв і червоним підсвітилось
-            }
+            dBMongo.UpdateDataIfConnected(id, Context.ConnectionId);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
